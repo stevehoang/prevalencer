@@ -16,36 +16,67 @@ shinyServer(function(input, output) {
   shinyjs::hide("country")
   observeEvent(input$br, {
     shinyjs::toggleElement("country")
-    shinyjs::toggleElement("caption")
+    shinyjs::toggleElement("total_pop")
+    shinyjs::toggleElement("bpy")
+  })
+  
+  # hide/show contour selector
+  shinyjs::hide("bin_size")
+  observeEvent(input$plot_type, {
+    shinyjs::toggleElement("prev_bin_size")
+    shinyjs::toggleElement("bin_size")
   })
   
   # make a reactive plot
   plotInput <- reactive({
     
-    if (input$br == "pc") { # incidence rate for a pre-set birth rate
-      ir <-  bpy[[input$country]] / c(input$inc_range[2], input$inc_range[1])
+    # get pby and population values based on ui
+    if (input$br == "pc") { # pre-set data
+      bpy_set <- bpy[[input$country]]
+      pop_set <- pops[[input$country]]
+      # plot caption
     }
-    else { # incidence rate for a custom birth rate
-      ir <-  as.numeric(input$caption) / c(input$inc_range[2], input$inc_range[1])
+    else { # custom data
+      bpy_set <- as.numeric(input$bpy)
+      pop_set <- input$total_pop
     }
+    # incidence rate 
+    ir <-  bpy_set / c(input$inc_range[2], input$inc_range[1]) 
     
-    # calculate the grid of prevalence values
-    x <- prevGrid(ir, input$life_range)
+    # calculate the grid of prevalence/patient pop values
+    grid_vals <- prevGrid(ir, input$life_range)
+    
+    # prevalence plot vs patient population plot 
+    if (input$plot_type == "prev_plot") {
+      grid_vals$prev <- grid_vals$prev / pop_set
+      fill_label <- "prevalence"
+      plot_title <- "Disease Prevalence"
+      bin_size <- input$prev_bin_size
+    } else {
+      fill_label <- "patient pop."
+      plot_title <- "Patient Population Size"
+      bin_size <- input$bin_size
+    }
     
     # plot caption
-    capt_txt <- paste0("1:", input$inc_range[2], " to 1:", input$inc_range[1])
-    capt_txt <- paste0("The y-axis is equivalent to a range of ", capt_txt, ".")
+    pop_caption <- paste("total population size:", format(pop_set, 
+                                                       big.mark = ","))
+    br_caption <- paste("total births per year:", format(bpy_set, big.mark=","))
+    inc_caption <- paste0("y-axis range is equivalent to ",
+                          "1:", format(input$inc_range[2], big.mark=","),
+                          " to 1:", format(input$inc_range[1], big.mark=","))
+    capt_txt <- paste(pop_caption, br_caption, inc_caption, sep="\n")
     
     # make the plot
-    p <- ggplot(x, aes(x = life, y = inc, z = prev)) +       
+    p <- ggplot(grid_vals, aes(x = life, y = inc, z = prev)) +       
       geom_tile(aes(fill = prev)) +
       scale_fill_viridis() +
       scale_color_distiller(palette = "Spectral") +
-      stat_contour(aes(color=..level..), linetype = "dashed", binwidth = input$bin_size) +
+      stat_contour(aes(color=..level..), linetype = "dashed", binwidth = bin_size) +
       labs(x = "median life expectancy (years)",
            y = "incidence (births per year)",
-           fill = "prevalence",
-           title = "Prevalence as a function of incidence and life expectancy",
+           fill = fill_label,
+           title = plot_title,
            caption = capt_txt) +
       theme(plot.caption = element_text(size = rel(0.7)))
     
@@ -57,18 +88,6 @@ shinyServer(function(input, output) {
   output$prevPlot <- renderPlot({
     print(plotInput())
   })
-  
-  # render birth rate in text below plot 
-  x <- reactive({
-    if (input$br == "pc") {
-      paste("total births per year", cntry[[input$country]], 
-            bpy[[input$country]])
-    }
-    else {
-      paste("total births per year:", input$caption)
-    }
-  })
-  output$value <- renderText({x()})
   
   # download handler
   output$dl <- downloadHandler(

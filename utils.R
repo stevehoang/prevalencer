@@ -1,11 +1,16 @@
 
 
-# define constants --------------------------------------------------------
+# define pre-set constants --------------------------------------------------------
 
 # births per year
 bpy <- list(us = 4e6,
             eu = 5.1e6,
             jp = 1e6)
+
+# populations
+pops <- list(us = 332e6,
+             eu = 448e6,
+             jp = 126e6)
 
 # countries
 cntry <- list(us = "in the US:",

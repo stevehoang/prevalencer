@@ -12,16 +12,21 @@ shinyUI(fluidPage(
   # Sidebar
   sidebarLayout(
     sidebarPanel(
+      
       # select pre-set or custom birth rate data
       radioButtons("br", "birth rate data:",
                    c("pre-set" = "pc",
                      "custom" = "cust")),
+      
       # select birth rate
-      radioButtons("country", "country (births per year):",
-                   c("US (4M BPY)" = "us",
-                     "EU (5.1M BPY)" = "eu",
-                     "Japan (1M BPY)" = "jp")),
-      textInput("caption", "total births per year (custom)", "1000000"),
+      radioButtons("country", "country:",
+                   c("US (population: 332M total, 4M BPY)" = "us",
+                     "EU (population: 448M total, 5.1M BPY)" = "eu",
+                     "Japan (population: 126M total, 1M BPY)" = "jp")),
+      
+      # custom population input
+      textInput("total_pop", "total population size (custom)", "100000000"),
+      textInput("bpy", "total births per year (custom)", "1000000"),
       
       # incidence slider
       sliderInput("inc_range",
@@ -38,19 +43,31 @@ shinyUI(fluidPage(
                   max = 80,
                   value = c(20, 40)),
       
-      # step size for plot contours 
-      sliderInput("bin_size",
-                  "contour step size:",
-                  min = 5,
-                  max = 1000,
-                  value = 100),
+      numericInput("bin_size",
+                   "contour step size:",
+                   value = 100,
+                   step = 100,
+                   min = 10, max = 10000),
+      
+      # step size for plot contours (prevalence)
+      numericInput("prev_bin_size",
+                   "contour step size:",
+                   value = 1e-6,
+                   step = 1e-6,
+                   min = 0, max = 1),
+      
+      # select prevalence plot or total population plot
+      radioButtons("plot_type", "plot type:",
+                   c("patient population" = "pop_plot",
+                     "prevalence" = "prev_plot")),
+      
+      # download button
       downloadButton("dl", "download plot")
     ),
 
     # Show a plot of the function
     mainPanel(
       plotOutput("prevPlot"),
-      verbatimTextOutput("value")
     )
   )
 ))
