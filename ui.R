@@ -56,10 +56,10 @@ shinyUI(fluidPage(
                    step = 1e-6,
                    min = 0, max = 1),
       
-      # select prevalence plot or total population plot
-      radioButtons("plot_type", "plot type:",
-                   c("patient population" = "pop_plot",
-                     "prevalence" = "prev_plot")),
+      # select frequency plot or total population plot
+      radioButtons("plot_type", "prevlance plot type:",
+                   c("total patients" = "pop_plot",
+                     "frequency" = "prev_plot")),
       
       # download button
       downloadButton("dl", "download plot")

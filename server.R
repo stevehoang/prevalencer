@@ -30,7 +30,7 @@ shinyServer(function(input, output) {
   # make a reactive plot
   plotInput <- reactive({
     
-    # get pby and population values based on ui
+    # get byp and population values based on ui
     if (input$br == "pc") { # pre-set data
       bpy_set <- bpy[[input$country]]
       pop_set <- pops[[input$country]]
@@ -43,18 +43,18 @@ shinyServer(function(input, output) {
     # incidence rate 
     ir <-  bpy_set / c(input$inc_range[2], input$inc_range[1]) 
     
-    # calculate the grid of prevalence/patient pop values
+    # calculate the grid of frequency/patient pop values
     grid_vals <- prevGrid(ir, input$life_range)
     
-    # prevalence plot vs patient population plot 
+    # frequency plot vs patient population plot 
     if (input$plot_type == "prev_plot") {
       grid_vals$prev <- grid_vals$prev / pop_set
-      fill_label <- "prevalence"
-      plot_title <- "Disease Prevalence"
+      fill_label <- "frequency"
+      plot_title <- "Disease Prevalence (Frequency)"
       bin_size <- input$prev_bin_size
     } else {
       fill_label <- "patient pop."
-      plot_title <- "Patient Population Size"
+      plot_title <- "Disease Prevalence (Patient Population Size)"
       bin_size <- input$bin_size
     }
     
@@ -87,7 +87,7 @@ shinyServer(function(input, output) {
   # render plot
   output$prevPlot <- renderPlot({
     print(plotInput())
-  })
+  }, height = 600, width = 900)
   
   # download handler
   output$dl <- downloadHandler(
